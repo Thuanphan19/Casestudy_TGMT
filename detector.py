@@ -5,12 +5,12 @@ class PeopleDetector:
         self.model = YOLO(model_path)
 
     def detect(self, frame):
-        # Tracking class 0 (Person), persist=True để giữ ID qua các frame
         results = self.model.track(frame, persist=True, classes=[0], conf=0.2, verbose=False)
         detections = []
         if results[0].boxes:
             for box in results[0].boxes:
-                if box.id is None: continue
+                if box.id is None:
+                    continue
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
                 detections.append({
                     "id": int(box.id[0]),

@@ -73,7 +73,6 @@
       margin-right: 8px;
       box-shadow: 0 0 0 3px rgba(16, 184, 106, 0.2);
     }
-    .win-btns { display: flex; gap: 14px; color: var(--muted); font-size: 16px; user-select: none; }
 
     /* Layout */
     .layout {
@@ -198,33 +197,72 @@
       height: 100%;
       pointer-events: none;
     }
+    .analysis-progress {
+      position: absolute;
+      right: 18px;
+      bottom: 8px;
+      left: 18px;
+      display: none;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: #fff;
+      pointer-events: none;
+    }
+    .analysis-progress.show { display: block; }
+    .analysis-progress-times {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    }
+    .analysis-progress-track {
+      height: 4px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .analysis-progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: #35a0ff;
+      transition: width 0.25s linear;
+    }
     .overlay-stats {
       position: absolute;
-      top: 14px;
-      left: 14px;
-      background: rgba(15, 25, 38, 0.72);
-      backdrop-filter: blur(4px);
-      color: white;
-      padding: 10px 14px;
-      border-radius: 8px;
-      line-height: 1.85;
-      font-size: 13.5px;
+      top: 5px;
+      left: 10px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+      color: #80ff32;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
       pointer-events: none;
-      border: 1px solid rgba(255, 255, 255, 0.12);
     }
-    .overlay-stats div { display: flex; align-items: center; gap: 8px; }
+    .overlay-stats.show { display: flex; }
     .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .overlay-stats strong { color: inherit; font-variant-numeric: tabular-nums; }
+    .overlay-stats-separator { opacity: 0.8; }
     .roi-state {
       position: absolute;
-      right: 14px;
-      top: 14px;
-      background: rgba(12, 28, 48, 0.78);
-      color: white;
+      right: 8px;
+      top: 5px;
+      background: rgba(12, 28, 48, 0.58);
+      backdrop-filter: blur(4px);
+      color: #fff;
       border-radius: 20px;
-      padding: 7px 13px;
-      font-size: 12px;
+      padding: 5px 10px;
+      font-size: 11px;
       font-weight: 600;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
       pointer-events: none;
     }
 
@@ -244,7 +282,7 @@
     .tools span { margin-right: auto; color: #315783; font-size: 13px; font-weight: 500; }
     .actions {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 12px;
       margin-top: 14px;
     }
@@ -259,9 +297,8 @@
       margin-top: 12px;
       font-size: 12.5px;
     }
-
     /* Right Panel Sections */
-    .right { overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+    .right { overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start; gap: 24px; }
     .section { padding: 18px; border-bottom: 1px solid var(--line); }
     .section:last-child { border: 0; }
     .stats {
@@ -289,28 +326,6 @@
     .out { background: #fff3f3; border-color: #ffdddd; color: #e53b3b; }
     .total { background: #f2f7ff; border-color: #d9e8ff; color: #17427e; }
 
-    /* Moving Person Info */
-    .person {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      border: 1px solid var(--line);
-      background: #fbfdff;
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .person .avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #e6f0ff;
-      color: var(--b);
-      display: grid;
-      place-items: center;
-    }
-    .person strong { font-size: 19px; }
-    .person p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
-    .person p b { color: var(--navy); font-size: 15px; margin-left: 8px; }
     .pill {
       display: inline-flex;
       margin-left: 10px;
@@ -329,6 +344,8 @@
       gap: 10px;
     }
     .thumb { text-align: left; }
+    .thumb.selectable { cursor: zoom-in; border-radius: 8px; }
+    .thumb.selectable:focus-visible { outline: 3px solid var(--b); outline-offset: 3px; }
     .thumb img {
       width: 100%;
       aspect-ratio: 3/4;
@@ -337,8 +354,8 @@
       background: #edf3fb;
       border: 1px solid var(--line);
     }
-    .thumb b { display: block; margin-top: 5px; font-size: 12.5px; color: var(--navy); }
-    .thumb small { display: block; font-size: 11.5px; color: var(--muted); }
+    .thumb b { display: block; margin-top: 5px; font-size: 12.5px; color: var(--b); }
+    .thumb small { display: block; font-size: 11.5px; color: var(--b); }
     .empty {
       grid-column: 1/-1;
       text-align: center;
@@ -349,7 +366,72 @@
 
     /* History Table */
     .history { margin-top: 16px; padding: 18px; }
+    .history-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .history-heading .title { margin: 0; }
+    .history-filters { display: flex; align-items: center; gap: 10px; }
+    .history-date {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: min(280px, 52vw);
+      min-height: 42px;
+      gap: 10px;
+      padding: 0 12px;
+      border: 1px solid #d5e0ef;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--navy);
+    }
+    .history-date svg { width: 19px; height: 19px; }
+    .history-date input {
+      position: static;
+      flex: 1;
+      width: 100%;
+      min-width: 0;
+      height: 40px;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--navy);
+      font: inherit;
+      cursor: pointer;
+    }
+    .history-date:focus-within { outline: 3px solid rgba(22, 119, 249, 0.18); }
+    .history-filter-button { min-width: 132px; border: 1px solid #cfe1ff; background: #f0f6ff; color: var(--b); }
     .tablewrap { overflow-x: auto; }
+    .history-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+    }
+    .history-pagination:empty { display: none; }
+    .page-button {
+      min-width: 34px;
+      height: 34px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--navy);
+      font: inherit;
+      cursor: pointer;
+    }
+    .page-button:hover:not(:disabled) { background: #f0f6ff; }
+    .page-button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .page-button.active { border-color: var(--b); background: var(--b); color: #fff; font-weight: 700; }
+    .page-ellipsis { padding: 0 3px; color: var(--muted); }
     table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
     th {
       background: #f4f8fd;
@@ -399,12 +481,19 @@
     .modal-box {
       background: #fff;
       width: 100%;
-      max-width: 680px;
+      max-width: 900px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
       border-radius: 14px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
       padding: 22px;
       animation: pop 0.18s ease-out;
     }
+    .modal-content { min-height: 0; overflow-y: auto; padding: 0 4px; }
+    .modal-content .people { padding-bottom: 4px; }
+    .thumb img { cursor: zoom-in; }
+    .thumb img:focus-visible { outline: 3px solid var(--b); outline-offset: 2px; }
     @keyframes pop {
       from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
@@ -446,11 +535,58 @@
       cursor: pointer;
     }
     .btn-close-modal:hover { background: #eef5ff; }
+    .image-viewer .modal-box {
+      max-width: min(96vw, 1200px);
+      max-height: 94vh;
+      padding: 14px;
+    }
+    .image-viewer-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      min-height: 0;
+    }
+    .image-viewer-content img {
+      display: block;
+      width: min(76vw, 1000px);
+      height: min(76vh, 760px);
+      object-fit: contain;
+      flex: 0 1 auto;
+    }
+    .image-caption { text-align: center; color: var(--muted); margin: 10px 0 0; }
+    .image-navigation {
+      width: 44px;
+      height: 52px;
+      flex: none;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f4f8fd;
+      color: var(--navy);
+      font-size: 30px;
+      line-height: 1;
+    }
+    .image-navigation:hover:not(:disabled) { background: #e1ecf9; }
 
     @media (max-width: 1080px) {
       .layout { grid-template-columns: 1fr; }
       .side { min-height: 0; flex-direction: row; align-items: center; }
       .topgrid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats { gap: 6px; }
+      .stat { padding: 10px 4px; }
+      .stat strong { font-size: 25px; }
+      .image-viewer .modal-box { padding: 10px; }
+      .image-viewer-content { gap: 6px; }
+      .image-viewer-content img { width: calc(100vw - 100px); height: 70vh; }
+      .image-navigation { width: 34px; height: 44px; font-size: 24px; }
+      .history-heading { align-items: stretch; }
+      .history-filters { width: 100%; }
+      .history-date { flex: 1; width: auto; }
+      .history-filter-button { min-width: auto; }
     }
   </style>
 </head>
@@ -463,12 +599,12 @@
     <symbol id="edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15zM12 20h8" /></symbol>
     <symbol id="play" viewBox="0 0 24 24"><path d="m8 5 12 7-12 7z" /></symbol>
     <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" /></symbol>
-    <symbol id="reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /></symbol>
+    <symbol id="resetIcon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /></symbol>
     <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></symbol>
     <symbol id="chart" viewBox="0 0 24 24"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7" /></symbol>
     <symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6m3-3h-6" /></symbol>
-    <symbol id="person" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4" /><path d="M3 21v-2a9 9 0 0 1 18 0v2z" /></symbol>
     <symbol id="history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2M4 4 2 7m2-3h4" /></symbol>
+    <symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></symbol>
     <symbol id="up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m8 13 4-4 4 4M12 9v8" /></symbol>
     <symbol id="down" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m8 11 4 4 4-4M12 7v8" /></symbol>
     <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></symbol>
@@ -484,8 +620,7 @@
       </div>
     </div>
     <div class="top-right">
-      <div class="status" id="status">Đang chạy</div>
-      <div class="win-btns"><span>—</span><span>☐</span><span>✕</span></div>
+      <div class="status" id="status">Sẵn sàng</div>
     </div>
   </header>
 
@@ -504,11 +639,10 @@
             <div class="title-left"><svg><use href="#video" /></svg>Video</div>
           </div>
           <div class="head">
-            <div class="select-box">
-              <span id="videoName">videos/videoplayback.mp4</span>
-              <span style="color:var(--muted);font-size:11px">▼</span>
-            </div>
-            <button class="btn blue" id="choose"><svg><use href="#folder" /></svg>Chọn video</button>
+            <select class="select-box" id="videoSelect" aria-label="Chọn video trong thư mục videos">
+              <option value="">Đang tải video...</option>
+            </select>
+            <button class="btn blue" id="choose"><svg><use href="#folder" /></svg>Tải video</button>
             <input id="file" type="file" accept="video/*" hidden />
           </div>
 
@@ -517,9 +651,21 @@
             <img id="streamImg" alt="AI Stream" style="display:none" />
             <canvas id="simCanvas" style="display:none"></canvas>
             <canvas id="canvas"></canvas>
-
-            
             <div class="roi-state" id="roiLabel">● Chưa thiết lập ROI</div>
+            <div class="overlay-stats" id="overlayStats" aria-live="polite">
+              <span>IN: <strong id="overlayInCount">0</strong></span>
+              <span class="overlay-stats-separator">|</span>
+              <span>OUT: <strong id="overlayOutCount">0</strong></span>
+            </div>
+            <div class="analysis-progress" id="analysisProgress" role="progressbar" aria-label="Tiến độ video" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="analysis-progress-times">
+                <span id="analysisElapsed">00:00</span>
+                <span id="analysisDuration">--:--</span>
+              </div>
+              <div class="analysis-progress-track">
+                <div class="analysis-progress-fill" id="analysisProgressFill"></div>
+              </div>
+            </div>
           </div>
 
           <!-- Thanh công cụ khi đang vẽ ROI -->
@@ -530,17 +676,18 @@
             <button class="btn light" id="cancel">Hủy</button>
           </div>
 
-          <!-- 3 Nút Điều Khiển Chính -->
+          <!-- Video controls -->
           <div class="actions">
             <button class="btn green" id="draw"><svg><use href="#edit" /></svg>Vẽ ROI</button>
             <button class="btn green" id="start" disabled><svg><use href="#play" /></svg>Bắt đầu đếm</button>
             <button class="btn light" id="playback" disabled><svg><use href="#pause" /></svg>Tạm dừng</button>
-            <button class="btn light" id="reset"><svg><use href="#reset" /></svg>Thiết lập lại</button>
+            <button class="btn red" id="stop" disabled>Dừng và lưu</button>
+            <button class="btn light" id="reset"><svg><use href="#resetIcon" /></svg>Thiết lập lại</button>
           </div>
 
           <div class="hint">
             <svg><use href="#info" /></svg>
-            Vẽ ROI rồi nhấn “Bắt đầu đếm”; có thể tạm dừng hoặc tiếp tục trong khi phân tích.
+            Vẽ ROI để bắt đầu; có thể tạm dừng hoặc dừng và lưu kết quả.
           </div>
         </section>
 
@@ -566,22 +713,6 @@
             </div>
           </div>
 
-         
-           <div class="section">
-            <div class="title">
-              <div class="title-left"><svg><use href="#person" /></svg>Thông tin người đang di chuyển</div>
-            </div>
-            <div class="person">
-              <div class="avatar"><svg><use href="#person" /></svg></div>
-              <div>
-                <strong id="activeId">Chưa có</strong>
-                <span class="pill" id="activeRoi">Đang chờ</span>
-                <p><span id="activeClass">Person</span> <b id="speed">-- m/s</b></p>
-              </div>
-            </div>
-          </div>
-          
-
           <div class="section">
             <div class="title">
               <div class="title-left"><svg><use href="#users" /></svg>Danh sách người đã vào ROI</div>
@@ -596,9 +727,17 @@
 
       <!-- Bảng Lịch Sử Phân Tích -->
       <section class="panel history">
-        <div class="title">
+        <div class="history-heading">
+          <div class="title">
           <div class="title-left"><svg><use href="#history" /></svg>Lịch sử phân tích</div>
-          <a class="view-all" id="viewAllHistory">Xem tất cả →</a>
+          </div>
+          <div class="history-filters">
+            <label class="history-date">
+              <svg aria-hidden="true"><use href="#calendar" /></svg>
+              <input id="historyDate" type="date" aria-label="Chọn ngày lọc lịch sử" />
+            </label>
+            <button class="btn history-filter-button" id="filterHistory">Lọc</button>
+          </div>
         </div>
         <div class="tablewrap">
           <table>
@@ -621,6 +760,7 @@
             </tbody>
           </table>
         </div>
+        <nav class="history-pagination" id="historyPagination" aria-label="Các trang lịch sử"></nav>
       </section>
     </main>
   </div>
@@ -628,34 +768,50 @@
   <!-- Modal Popup: Chi tiết phân tích -->
   <div class="modal-backdrop" id="detailModal">
     <div class="modal-box">
-      <div class="modal-header">
-        <h3><svg style="color:var(--b)"><use href="#chart" /></svg>Chi tiết phân tích</h3>
-        <button class="close-btn" id="closeModalX">✕</button>
-      </div>
-      <div class="stats" style="margin-bottom: 20px;">
-        <div class="stat in">
-          <div class="stathead"><svg><use href="#up" /></svg>Lượt vào</div>
-          <strong id="modalIn">0</strong><em>người</em>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><svg style="color:var(--b)"><use href="#chart" /></svg>Chi tiết phân tích</h3>
+          <button class="close-btn" id="closeModalX">✕</button>
         </div>
-        <div class="stat out">
-          <div class="stathead"><svg><use href="#down" /></svg>Lượt ra</div>
-          <strong id="modalOut">0</strong><em>người</em>
+        <div class="stats" style="margin-bottom: 20px;">
+          <div class="stat in">
+            <div class="stathead"><svg><use href="#up" /></svg>Lượt vào</div>
+            <strong id="modalIn">0</strong><em>người</em>
+          </div>
+          <div class="stat out">
+            <div class="stathead"><svg><use href="#down" /></svg>Lượt ra</div>
+            <strong id="modalOut">0</strong><em>người</em>
+          </div>
+          <div class="stat total">
+            <div class="stathead"><svg><use href="#users" /></svg>Tổng người</div>
+            <strong id="modalTotal">0</strong><em>người</em>
+          </div>
         </div>
-        <div class="stat total">
-          <div class="stathead"><svg><use href="#users" /></svg>Tổng người</div>
-          <strong id="modalTotal">0</strong><em>người</em>
+        <div class="title">
+          <div class="title-left"><svg><use href="#users" /></svg>Danh sách người đã vào ROI</div>
+          <span class="pill" id="modalBadgeTotal" style="background:#eef6ff;color:var(--b)">Tổng: 0 người</span>
         </div>
-      </div>
-      <div class="title">
-        <div class="title-left"><svg><use href="#users" /></svg>Danh sách người đã vào ROI</div>
-        <span class="pill" id="modalBadgeTotal" style="background:#eef6ff;color:var(--b)">Tổng: 0 người</span>
-      </div>
-      <div class="people" id="modalPeopleList">
-        <div class="empty">Chưa có dữ liệu</div>
+        <div class="people" id="modalPeopleList">
+          <div class="empty">Chưa có dữ liệu</div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-close-modal" id="closeModalBtn">✕ &nbsp; Đóng</button>
       </div>
+    </div>
+  </div>
+  <div class="modal-backdrop image-viewer" id="imageViewer">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="imageViewerTitle">Ảnh đã chụp</h3>
+        <button class="close-btn" id="closeImageViewer" aria-label="Đóng ảnh">✕</button>
+      </div>
+      <div class="image-viewer-content">
+        <button class="image-navigation" id="previousImage" aria-label="Ảnh trước" title="Ảnh trước">‹</button>
+        <img id="imageViewerImage" alt="Ảnh người đã vào ROI" />
+        <button class="image-navigation" id="nextImage" aria-label="Ảnh tiếp theo" title="Ảnh tiếp theo">›</button>
+      </div>
+      <p class="image-caption" id="imageViewerCaption"></p>
     </div>
   </div>
 
@@ -678,10 +834,38 @@
         isDemoMode = false,
         enteredPeople = [],
         historyEntries = [],
+        imageViewerPeople = [],
+        imageViewerIndex = 0,
         playbackPaused = false,
-        streamActive = false;
+        streamActive = false,
+        historyPage = 1,
+        historyPageSize = 8,
+        historyTotal = 0,
+        historyServerPaginated = false;
 
     function setStatus(t) { $("status").textContent = t; }
+
+    function formatVideoTime(seconds) {
+      if (!Number.isFinite(seconds) || seconds < 0) return "--:--";
+      const wholeSeconds = Math.floor(seconds);
+      const hours = Math.floor(wholeSeconds / 3600);
+      const minutes = Math.floor((wholeSeconds % 3600) / 60);
+      const remainder = wholeSeconds % 60;
+      return hours
+        ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`
+        : `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+    }
+
+    function updateAnalysisProgress(positionSeconds, durationSeconds, visible = true) {
+      const duration = Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : 0;
+      const position = Number.isFinite(positionSeconds) && positionSeconds > 0 ? positionSeconds : 0;
+      const percentage = duration ? Math.min(100, position / duration * 100) : 0;
+      $("analysisElapsed").textContent = formatVideoTime(position);
+      $("analysisDuration").textContent = formatVideoTime(duration);
+      $("analysisProgressFill").style.width = `${percentage}%`;
+      $("analysisProgress").setAttribute("aria-valuenow", String(Math.round(percentage)));
+      $("analysisProgress").classList.toggle("show", visible);
+    }
 
     function setPlaybackButton(paused) {
       playbackPaused = paused;
@@ -693,6 +877,7 @@
     // Khởi tạo video mặc định (Nếu không có backend sẽ bật Demo Canvas để bạn test ngay)
     async function loadDefault() {
       streamImg.style.display = "none";
+      simCanvas.style.display = "none";
       player.style.display = "block";
       try {
         const res = await fetch("/api/default-video");
@@ -700,8 +885,8 @@
           const data = await res.json();
           currentFilename = data.filename || DEFAULT_VIDEO;
           player.src = data.url || ("/videos/" + encodeURIComponent(currentFilename));
-          $("videoName").textContent = "videos/" + currentFilename;
           isDemoMode = false;
+          await loadVideos(currentFilename);
           return;
         }
       } catch (e) {}
@@ -709,7 +894,6 @@
       isDemoMode = true;
       player.style.display = "none";
       simCanvas.style.display = "block";
-      $("videoName").textContent = "videos/people_default.mp4 (Chế độ chạy thử)";
       drawDemoIdle();
     }
 
@@ -779,7 +963,12 @@
     $("file").onchange = async (e) => {
       const f = e.target.files[0];
       if (!f) return;
-      stopAllStreams();
+      try {
+        await stopAllStreams();
+      } catch (error) {
+        setStatus(error.message || "Không thể dừng phân tích hiện tại.");
+        return;
+      }
       if (localUrl) URL.revokeObjectURL(localUrl);
       localUrl = URL.createObjectURL(f);
       simCanvas.style.display = "none";
@@ -787,7 +976,7 @@
       player.style.display = "block";
       player.src = localUrl;
       currentFilename = f.name;
-      $("videoName").textContent = "videos/" + f.name;
+      updateAnalysisProgress(0, 0, false);
       points = [];
       confirmed = false;
       enteredPeople = [];
@@ -803,12 +992,65 @@
         if (r.ok) {
           const d = await r.json();
           if (d.filename) currentFilename = d.filename;
+          await loadVideos(currentFilename);
           isDemoMode = false;
         }
       } catch (err) {
         isDemoMode = true;
       }
     };
+
+    $("videoSelect").onchange = async () => {
+      const selected = $("videoSelect").value;
+      if (!selected) return;
+      try {
+        await stopAllStreams();
+      } catch (error) {
+        setStatus(error.message || "Không thể dừng phân tích hiện tại.");
+        return;
+      }
+      if (localUrl) { URL.revokeObjectURL(localUrl); localUrl = null; }
+      currentFilename = selected;
+      player.style.display = "block";
+      streamImg.style.display = "none";
+      simCanvas.style.display = "none";
+      player.src = `/videos/${encodeURIComponent(selected)}`;
+      player.load();
+      updateAnalysisProgress(0, 0, false);
+      points = [];
+      confirmed = false;
+      enteredPeople = [];
+      renderThumbnails();
+      paint();
+      roiStatus();
+      isDemoMode = false;
+      setStatus("Đã chọn video");
+    };
+
+    async function loadVideos(selectedFilename = currentFilename) {
+      const response = await fetch("/api/videos");
+      if (!response.ok) throw new Error("Không tải được danh sách video.");
+      const data = await response.json();
+      const select = $("videoSelect");
+      select.replaceChildren();
+      (data.videos || []).forEach(video => {
+        const option = document.createElement("option");
+        option.value = video.filename;
+        option.textContent = video.filename;
+        select.appendChild(option);
+      });
+      if (!select.options.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Chưa có video";
+        select.appendChild(option);
+        currentFilename = "";
+        return;
+      }
+      const match = [...select.options].find(option => option.value === selectedFilename);
+      select.value = match ? selectedFilename : select.options[0].value;
+      if (select.value !== currentFilename || !player.src) select.dispatchEvent(new Event("change"));
+    }
 
     // Các nút Vẽ, Xóa, Hủy, Xác nhận ROI
     $("draw").onclick = () => {
@@ -864,8 +1106,11 @@
       $("start").disabled = true;
       enteredPeople = [];
       renderThumbnails();
+      updateUIStats(0, 0, 0);
       $("playback").disabled = true;
+      $("stop").disabled = true;
       setStatus("Đang chạy");
+      updateAnalysisProgress(0, 0);
 
       const roi = points.map((p) => [+p.x.toFixed(5), +p.y.toFixed(5)]);
       try {
@@ -885,7 +1130,9 @@
           streamImg.style.display = "block";
           streamImg.src = `/video_feed/${encodeURIComponent(currentFilename)}?t=${Date.now()}`;
           streamActive = true;
+          $("overlayStats").classList.add("show");
           $("playback").disabled = false;
+          $("stop").disabled = true;
           setPlaybackButton(false);
           // Tắt nét vẽ canvas đè lên vì backend đã vẽ sẵn ROI lên frame
           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -896,14 +1143,18 @@
               const sr = await fetch("/api/stats");
               if (sr.ok) {
                 const s = await sr.json();
-                updateUIStats(s.count_in || 0, s.count_out || 0, s.total_people || 0, s.active_id, s.speed);
+                updateUIStats(s.count_in || 0, s.count_out || 0, s.total_people || 0);
                 syncEnteredPeople(s.entered_people || []);
+                updateAnalysisProgress(s.position_seconds || 0, s.duration_seconds || 0);
+                $("stop").disabled = !s.running;
                 if (s.paused !== playbackPaused) setPlaybackButton(!!s.paused);
-                if (!s.running && s.completed) {
+                if (!s.running && (s.finalized || s.save_error)) {
+                  updateAnalysisProgress(s.position_seconds || 0, s.duration_seconds || 0);
                   streamActive = false;
                   $("playback").disabled = true;
+                  $("stop").disabled = true;
                   if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
-                  setStatus("Phân tích hoàn tất");
+                  setStatus(s.save_error || (s.completed ? "Phân tích hoàn tất" : "Đã dừng và lưu kết quả"));
                   await loadHistory();
                 }
               }
@@ -924,6 +1175,47 @@
         isDemoMode = true;
         streamActive = false;
         startInteractiveDemo();
+      }
+    };
+
+    $("stop").onclick = async () => {
+      $("stop").disabled = true;
+      setStatus("Đang dừng và lưu kết quả...");
+      try {
+        const response = await fetch("/api/stop", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ save: true })
+        });
+        const result = await response.json();
+        if (!response.ok && response.status !== 202) {
+          if (result.stats) {
+            streamActive = false;
+            $("playback").disabled = true;
+            if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
+          }
+          throw new Error(result.error || "Không thể dừng video.");
+        }
+        if (result.stats) {
+          updateUIStats(
+            result.stats.count_in || 0,
+            result.stats.count_out || 0,
+            result.stats.total_people || 0
+          );
+        }
+        if (result.saved) {
+          streamActive = false;
+          streamImg.src = "";
+          if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
+          $("playback").disabled = true;
+          await loadHistory();
+          setStatus("Đã dừng và lưu kết quả");
+        } else {
+          setStatus("Đang dừng video...");
+        }
+      } catch (error) {
+        $("stop").disabled = !streamActive;
+        setStatus(error.message || "Không thể dừng video.");
       }
     };
 
@@ -955,21 +1247,18 @@
       }
     };
 
-    function updateUIStats(inn, out, total, activeId, spd) {
+    function updateUIStats(inn, out, total) {
       const prevIn = parseInt($("inCount").textContent) || 0;
       $("inCount").textContent = inn;
       $("outCount").textContent = out;
       $("peopleCount").textContent = total;
+      $("overlayInCount").textContent = inn;
+      $("overlayOutCount").textContent = out;
 
       if (isDemoMode && inn > prevIn) {
         for (let i = prevIn + 1; i <= inn; i++) {
           addPersonThumbnail(i);
         }
-      }
-      if (activeId) {
-        $("activeId").textContent = "ID " + activeId;
-        $("activeRoi").textContent = "Trong ROI";
-        $("speed").textContent = (spd || "0.62") + " m/s";
       }
     }
 
@@ -1009,21 +1298,78 @@
         box.innerHTML = '<div class="empty">Chưa có dữ liệu</div>';
         return;
       }
-      box.innerHTML = enteredPeople.slice(0, 5).map(p => `
-        <div class="thumb">
+      const visiblePeople = enteredPeople.slice(0, 5);
+      box.innerHTML = visiblePeople.map((p, index) => `
+        <div class="thumb selectable" role="button" tabindex="0" aria-label="Xem ảnh ID ${p.id}">
           <img src="${p.img}" alt="ID ${p.id}" />
           <b>ID ${p.id}</b>
           <small>${p.time}</small>
         </div>
       `).join("");
+      bindImagePreview(box, visiblePeople, enteredPeople);
     }
 
-    async function loadHistory() {
+    function bindImagePreview(container, people, viewerPeople = people) {
+      container.querySelectorAll(".thumb").forEach((card, index) => {
+        const openImage = () => showCapturedImage(viewerPeople, viewerPeople.indexOf(people[index]));
+        card.onclick = openImage;
+        card.onkeydown = (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openImage();
+          }
+        };
+      });
+    }
+
+    function showCapturedImage(people, index) {
+      if (index < 0 || index >= people.length) return;
+      const person = people[index];
+      if (!(person.img || person.image_url)) return;
+      imageViewerPeople = people;
+      imageViewerIndex = index;
+      renderViewerImage();
+      $("imageViewer").classList.add("show");
+    }
+
+    function renderViewerImage() {
+      const person = imageViewerPeople[imageViewerIndex];
+      if (!person) return;
+      const imageUrl = person.img || person.image_url;
+      if (!imageUrl) return;
+      $("imageViewerImage").src = imageUrl;
+      $("imageViewerTitle").textContent = `Ảnh đã chụp - ID ${person.id}`;
+      $("imageViewerCaption").textContent = person.time || "";
+      $("previousImage").disabled = imageViewerIndex === 0;
+      $("nextImage").disabled = imageViewerIndex === imageViewerPeople.length - 1;
+    }
+
+    function closeImageViewer() {
+      $("imageViewer").classList.remove("show");
+      $("imageViewerImage").removeAttribute("src");
+      imageViewerPeople = [];
+      imageViewerIndex = 0;
+    }
+
+    async function loadHistory(page = 1) {
       try {
-        const response = await fetch("/api/history");
+        const params = new URLSearchParams();
+        params.set("page", String(page));
+        const selectedDate = $("historyDate").value;
+        if (selectedDate) {
+          params.set("start_date", selectedDate);
+          params.set("end_date", selectedDate);
+        }
+        const query = params.toString();
+        const suffix = query ? `?${query}` : "";
+        const response = await fetch(`/api/history${suffix}`);
         if (!response.ok) throw new Error("Không tải được lịch sử phân tích.");
         const data = await response.json();
         historyEntries = data.history || [];
+        historyServerPaginated = Number.isInteger(data.total);
+        historyTotal = historyServerPaginated ? data.total : historyEntries.length;
+        historyPage = data.page || page;
+        historyPageSize = data.per_page || 8;
         renderHistory();
       } catch (error) {
         setStatus(error.message || "Không tải được lịch sử phân tích.");
@@ -1033,14 +1379,19 @@
     function renderHistory() {
       const body = $("historyBody");
       body.replaceChildren();
-      if (!historyEntries.length) {
+      const visibleEntries = historyServerPaginated
+        ? historyEntries
+        : historyEntries.slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize);
+      if (!visibleEntries.length) {
         body.innerHTML = '<tr><td colspan="8" class="empty">Chưa có lịch sử phân tích</td></tr>';
+        $("historyPagination").replaceChildren();
         return;
       }
-      historyEntries.forEach((entry, index) => {
+      const firstRowNumber = (historyPage - 1) * historyPageSize + 1;
+      visibleEntries.forEach((entry, index) => {
         const row = document.createElement("tr");
         [
-          index + 1,
+          firstRowNumber + index,
           entry.filename,
           entry.created_at,
           entry.total_people || 0,
@@ -1067,6 +1418,52 @@
         row.appendChild(actionCell);
         body.appendChild(row);
       });
+      renderHistoryPagination();
+    }
+
+    function renderHistoryPagination() {
+      const pagination = $("historyPagination");
+      pagination.replaceChildren();
+      const totalPages = Math.ceil(historyTotal / historyPageSize);
+      if (totalPages <= 1) return;
+
+      const addButton = (label, page, options = {}) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `page-button${options.active ? " active" : ""}`;
+        button.textContent = label;
+        button.disabled = !!options.disabled;
+        if (options.label) button.setAttribute("aria-label", options.label);
+        if (options.active) button.setAttribute("aria-current", "page");
+        button.onclick = () => loadHistory(page);
+        pagination.appendChild(button);
+      };
+
+      addButton("‹", Math.max(1, historyPage - 1), {
+        disabled: historyPage === 1,
+        label: "Trang trước",
+      });
+
+      const visiblePages = new Set([1, totalPages]);
+      for (let page = Math.max(1, historyPage - 1); page <= Math.min(totalPages, historyPage + 1); page++) {
+        visiblePages.add(page);
+      }
+      let previousPage = 0;
+      [...visiblePages].sort((a, b) => a - b).forEach(page => {
+        if (previousPage && page - previousPage > 1) {
+          const ellipsis = document.createElement("span");
+          ellipsis.className = "page-ellipsis";
+          ellipsis.textContent = "…";
+          pagination.appendChild(ellipsis);
+        }
+        addButton(String(page), page, { active: page === historyPage });
+        previousPage = page;
+      });
+
+      addButton("›", Math.min(totalPages, historyPage + 1), {
+        disabled: historyPage === totalPages,
+        label: "Trang sau",
+      });
     }
 
     // Mở / Đóng Modal Chi tiết phân tích
@@ -1081,51 +1478,97 @@
       if (!people.length) {
         list.innerHTML = '<div class="empty">Chưa có dữ liệu người vào ROI</div>';
       } else {
-        list.innerHTML = people.slice(0, 10).map(p => `
-          <div class="thumb">
-            <img src="${p.img || p.image_url}" alt="ID ${p.id}" />
+        list.innerHTML = people.map(p => `
+          <div class="thumb selectable" role="button" tabindex="0" aria-label="Xem ảnh ID ${p.id}">
+            <img src="${p.img || p.image_url}" alt="ID ${p.id}" tabindex="0" />
             <b>ID ${p.id}</b>
             <small>${p.time}</small>
           </div>
         `).join("");
+        bindImagePreview(list, people);
       }
       $("detailModal").classList.add("show");
     };
 
     $("openModalLink").onclick = () => openDetailModal();
-    $("viewAllHistory").onclick = () => document.querySelector(".history").scrollIntoView({ behavior: "smooth" });
     $("closeModalX").onclick = () => $("detailModal").classList.remove("show");
     $("closeModalBtn").onclick = () => $("detailModal").classList.remove("show");
+    $("closeImageViewer").onclick = closeImageViewer;
+    $("previousImage").onclick = () => {
+      if (imageViewerIndex > 0) {
+        imageViewerIndex--;
+        renderViewerImage();
+      }
+    };
+    $("nextImage").onclick = () => {
+      if (imageViewerIndex < imageViewerPeople.length - 1) {
+        imageViewerIndex++;
+        renderViewerImage();
+      }
+    };
+    $("filterHistory").onclick = () => loadHistory(1);
+    $("historyDate").onchange = () => loadHistory(1);
+    $("imageViewer").onclick = (event) => {
+      if (event.target === $("imageViewer")) closeImageViewer();
+    };
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeImageViewer();
+        $("detailModal").classList.remove("show");
+      } else if ($("imageViewer").classList.contains("show") && event.key === "ArrowLeft") {
+        $("previousImage").click();
+      } else if ($("imageViewer").classList.contains("show") && event.key === "ArrowRight") {
+        $("nextImage").click();
+      }
+    });
 
-    function stopAllStreams() {
+    async function stopAllStreams() {
       if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
       if (simAnim) { cancelAnimationFrame(simAnim); simAnim = null; }
-      if (streamActive) fetch("/api/stop", { method: "POST" }).catch(() => {});
+      const response = await fetch("/api/stop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ save: false }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.status === "stopping") {
+        throw new Error(result.error || "Không thể dừng phân tích để thiết lập lại.");
+      }
       streamActive = false;
+      streamImg.src = "";
+      streamImg.style.display = "none";
+      player.style.display = "block";
+      $("overlayStats").classList.remove("show");
       $("playback").disabled = true;
       setPlaybackButton(false);
     }
 
     // Nút Thiết lập lại (Reset)
-    $("reset").onclick = () => {
-      stopAllStreams();
-      player.pause();
-      points = [];
-      confirmed = false;
-      enteredPeople = [];
-      drawingMode(false);
-      paint();
-      roiStatus();
-      ["inCount", "outCount", "peopleCount"].forEach(
-        (id) => ($(id).textContent = "0")
-      );
-      $("activeId").textContent = "Chưa có";
-      $("activeRoi").textContent = "Đang chờ";
-      $("speed").textContent = "-- m/s";
-      renderThumbnails();
-      loadDefault();
-      loadHistory();
-      setStatus("Đã thiết lập lại");
+    $("reset").onclick = async () => {
+      const resetButton = $("reset");
+      resetButton.disabled = true;
+      setStatus("Đang thiết lập lại...");
+      try {
+        await stopAllStreams();
+        player.pause();
+        points = [];
+        confirmed = false;
+        enteredPeople = [];
+        updateAnalysisProgress(0, 0, false);
+        updateUIStats(0, 0, 0);
+        drawingMode(false);
+        paint();
+        roiStatus();
+        $("stop").disabled = true;
+        renderThumbnails();
+        await loadDefault();
+        await loadHistory(1);
+        setStatus("Đã thiết lập lại");
+      } catch (error) {
+        setStatus(error.message || "Không thể thiết lập lại.");
+      } finally {
+        resetButton.disabled = false;
+      }
     };
 
     /* =========================================================================
@@ -1170,8 +1613,7 @@
         y: Math.random() * 0.8 + 0.1,
         vx: (Math.random() - 0.5) * 0.0035,
         vy: (Math.random() - 0.5) * 0.0035,
-        inRoi: false,
-        speed: (0.45 + Math.random() * 0.45).toFixed(2)
+        inRoi: false
       }));
       let cIn = 0, cOut = 0, totalIds = agents.length;
 
@@ -1194,10 +1636,10 @@
           const inside = pointInPoly(a.x, a.y, points);
           if (inside && !a.inRoi) {
             a.inRoi = true; cIn++;
-            updateUIStats(cIn, cOut, totalIds, a.id, a.speed);
+            updateUIStats(cIn, cOut, totalIds);
           } else if (!inside && a.inRoi) {
             a.inRoi = false; cOut++;
-            updateUIStats(cIn, cOut, totalIds, a.id, a.speed);
+            updateUIStats(cIn, cOut, totalIds);
           }
 
           const px = a.x * w, py = a.y * h;
@@ -1209,7 +1651,7 @@
           ctx.fillRect(px - bw / 2, py - bh / 2 - 18, 86, 18);
           ctx.fillStyle = "#fff";
           ctx.font = "bold 11px sans-serif";
-          ctx.fillText(`ID ${a.id}  ${a.speed}m/s`, px - bw / 2 + 4, py - bh / 2 - 5);
+          ctx.fillText(`ID ${a.id}`, px - bw / 2 + 4, py - bh / 2 - 5);
         });
 
         simAnim = requestAnimationFrame(step);
@@ -1224,6 +1666,7 @@
     window.addEventListener("resize", fit);
     player.addEventListener("loadedmetadata", fit);
     loadDefault();
+    loadHistory();
     fit();
     roiStatus();
   </script>

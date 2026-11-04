@@ -25,13 +25,29 @@ def save_history(filename, output_name, stats, processing_time):
             (filename, output_name, json.dumps(stats), processing_time, datetime.now().strftime("%d/%m/%Y %H:%M"))
         )
 
-def get_history():
+def get_history(start_date=None, end_date=None, limit=None, offset=0):
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
-        cur.execute(
+        query = (
             "SELECT id, filename, output_name, stats, processing_time, created_at "
-            "FROM history ORDER BY id DESC"
+            "FROM history"
         )
+        filters = []
+        parameters = []
+        date_value = "substr(created_at, 7, 4) || '-' || substr(created_at, 4, 2) || '-' || substr(created_at, 1, 2)"
+        if start_date:
+            filters.append(f"{date_value} >= ?")
+            parameters.append(start_date)
+        if end_date:
+            filters.append(f"{date_value} <= ?")
+            parameters.append(end_date)
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
+        query += " ORDER BY id DESC"
+        if limit is not None:
+            query += " LIMIT ? OFFSET ?"
+            parameters.extend((limit, offset))
+        cur.execute(query, parameters)
         return [
             {
                 "id": row[0],
@@ -43,3 +59,21 @@ def get_history():
             }
             for row in cur.fetchall()
         ]
+
+def count_history(start_date=None, end_date=None):
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        query = "SELECT COUNT(*) FROM history"
+        filters = []
+        parameters = []
+        date_value = "substr(created_at, 7, 4) || '-' || substr(created_at, 4, 2) || '-' || substr(created_at, 1, 2)"
+        if start_date:
+            filters.append(f"{date_value} >= ?")
+            parameters.append(start_date)
+        if end_date:
+            filters.append(f"{date_value} <= ?")
+            parameters.append(end_date)
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
+        cur.execute(query, parameters)
+        return cur.fetchone()[0]
