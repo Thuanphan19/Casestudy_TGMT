@@ -1,4 +1,5 @@
+
+Flask
 ultralytics
-opencv-python-headless
-streamlit
-pandas
+opencv-python
+numpy
