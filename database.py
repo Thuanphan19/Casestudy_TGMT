@@ -1,8 +1,9 @@
 import sqlite3
 import json
 from datetime import datetime
+from pathlib import Path
 
-DB_PATH = "peopletrack.db"
+DB_PATH = Path(__file__).resolve().parent / "peopletrack.db"
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
@@ -27,11 +28,18 @@ def save_history(filename, output_name, stats, processing_time):
 def get_history():
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
-        cur.execute("SELECT filename, stats, created_at FROM history ORDER BY id DESC")
+        cur.execute(
+            "SELECT id, filename, output_name, stats, processing_time, created_at "
+            "FROM history ORDER BY id DESC"
+        )
         return [
             {
-                "filename": r[0], 
-                "created_at": r[2], 
-                **json.loads(r[1])
-            } for r in cur.fetchall()
+                "id": row[0],
+                "filename": row[1],
+                "output_name": row[2],
+                "processing_time": row[4],
+                "created_at": row[5],
+                **json.loads(row[3]),
+            }
+            for row in cur.fetchall()
         ]

@@ -15,6 +15,7 @@ class ROICounter:
         return cv2.pointPolygonTest(self.polygon, (cx, cy), False) >= 0
 
     def update(self, detections):
+        entered_ids = []
         for det in detections:
             track_id = det["id"]
             self.detected_ids.add(track_id)
@@ -23,8 +24,13 @@ class ROICounter:
             if inside and track_id not in self.objects_in_zone:
                 self.count_in += 1
                 self.objects_in_zone.add(track_id)
+                entered_ids.append(track_id)
             elif not inside and track_id in self.objects_in_zone:
                 self.count_out += 1
                 self.objects_in_zone.discard(track_id)
 
-        return {"count_in": self.count_in, "count_out": self.count_out}
+        return {
+            "count_in": self.count_in,
+            "count_out": self.count_out,
+            "entered_ids": entered_ids,
+        }

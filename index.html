@@ -244,7 +244,7 @@
     .tools span { margin-right: auto; color: #315783; font-size: 13px; font-weight: 500; }
     .actions {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       margin-top: 14px;
     }
@@ -462,6 +462,7 @@
     <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></symbol>
     <symbol id="edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15zM12 20h8" /></symbol>
     <symbol id="play" viewBox="0 0 24 24"><path d="m8 5 12 7-12 7z" /></symbol>
+    <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" /></symbol>
     <symbol id="reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /></symbol>
     <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></symbol>
     <symbol id="chart" viewBox="0 0 24 24"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7" /></symbol>
@@ -533,12 +534,13 @@
           <div class="actions">
             <button class="btn green" id="draw"><svg><use href="#edit" /></svg>Vẽ ROI</button>
             <button class="btn green" id="start" disabled><svg><use href="#play" /></svg>Bắt đầu đếm</button>
+            <button class="btn light" id="playback" disabled><svg><use href="#pause" /></svg>Tạm dừng</button>
             <button class="btn light" id="reset"><svg><use href="#reset" /></svg>Thiết lập lại</button>
           </div>
 
           <div class="hint">
             <svg><use href="#info" /></svg>
-            Vui lòng vẽ vùng ROI trước khi bắt đầu đếm. Video sẽ tự động chạy sau khi nhấn “Bắt đầu đếm”.
+            Vẽ ROI rồi nhấn “Bắt đầu đếm”; có thể tạm dừng hoặc tiếp tục trong khi phân tích.
           </div>
         </section>
 
@@ -674,9 +676,19 @@
         statsTimer = null,
         simAnim = null,
         isDemoMode = false,
-        enteredPeople = [];
+        enteredPeople = [],
+        historyEntries = [],
+        playbackPaused = false,
+        streamActive = false;
 
     function setStatus(t) { $("status").textContent = t; }
+
+    function setPlaybackButton(paused) {
+      playbackPaused = paused;
+      $("playback").innerHTML = paused
+        ? '<svg><use href="#play" /></svg>Tiếp tục'
+        : '<svg><use href="#pause" /></svg>Tạm dừng';
+    }
 
     // Khởi tạo video mặc định (Nếu không có backend sẽ bật Demo Canvas để bạn test ngay)
     async function loadDefault() {
@@ -778,6 +790,8 @@
       $("videoName").textContent = "videos/" + f.name;
       points = [];
       confirmed = false;
+      enteredPeople = [];
+      renderThumbnails();
       paint();
       roiStatus();
       setStatus("Đã chọn video");
@@ -848,6 +862,9 @@
     $("start").onclick = async () => {
       if (!confirmed || points.length < 3) return;
       $("start").disabled = true;
+      enteredPeople = [];
+      renderThumbnails();
+      $("playback").disabled = true;
       setStatus("Đang chạy");
 
       const roi = points.map((p) => [+p.x.toFixed(5), +p.y.toFixed(5)]);
@@ -867,6 +884,9 @@
           simCanvas.style.display = "none";
           streamImg.style.display = "block";
           streamImg.src = `/video_feed/${encodeURIComponent(currentFilename)}?t=${Date.now()}`;
+          streamActive = true;
+          $("playback").disabled = false;
+          setPlaybackButton(false);
           // Tắt nét vẽ canvas đè lên vì backend đã vẽ sẵn ROI lên frame
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -877,6 +897,15 @@
               if (sr.ok) {
                 const s = await sr.json();
                 updateUIStats(s.count_in || 0, s.count_out || 0, s.total_people || 0, s.active_id, s.speed);
+                syncEnteredPeople(s.entered_people || []);
+                if (s.paused !== playbackPaused) setPlaybackButton(!!s.paused);
+                if (!s.running && s.completed) {
+                  streamActive = false;
+                  $("playback").disabled = true;
+                  if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
+                  setStatus("Phân tích hoàn tất");
+                  await loadHistory();
+                }
               }
             } catch (e) {}
           }, 800);
@@ -888,11 +917,41 @@
           player.load();
           await player.play().catch(() => {});
           updateUIStats(d.count_in || 0, d.count_out || 0, d.total_people || 0);
-          addHistoryRow(currentFilename, d.total_people || 0, d.count_in || 0, d.count_out || 0);
+          await loadHistory();
         }
       } catch (err) {
         // Tự động chuyển sang Demo trực quan khi chạy thử không có Backend
+        isDemoMode = true;
+        streamActive = false;
         startInteractiveDemo();
+      }
+    };
+
+    $("playback").onclick = async () => {
+      if (isDemoMode) {
+        if (localUrl && player.style.display !== "none") {
+          if (playbackPaused) player.play().catch(() => {});
+          else player.pause();
+        }
+        if (playbackPaused) {
+          setPlaybackButton(false);
+          startDemoAnimation();
+        } else {
+          setPlaybackButton(true);
+          if (simAnim) { cancelAnimationFrame(simAnim); simAnim = null; }
+        }
+        return;
+      }
+      if (!streamActive) return;
+      const endpoint = playbackPaused ? "/api/resume" : "/api/pause";
+      try {
+        const response = await fetch(endpoint, { method: "POST" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Không thể điều khiển video.");
+        setPlaybackButton(result.paused);
+        setStatus(result.paused ? "Đã tạm dừng" : "Đang chạy");
+      } catch (error) {
+        setStatus(error.message || "Không thể điều khiển video.");
       }
     };
 
@@ -901,10 +960,8 @@
       $("inCount").textContent = inn;
       $("outCount").textContent = out;
       $("peopleCount").textContent = total;
-      $("overlayIn").textContent = inn;
-      $("overlayOut").textContent = out;
 
-      if (inn > prevIn) {
+      if (isDemoMode && inn > prevIn) {
         for (let i = prevIn + 1; i <= inn; i++) {
           addPersonThumbnail(i);
         }
@@ -914,6 +971,15 @@
         $("activeRoi").textContent = "Trong ROI";
         $("speed").textContent = (spd || "0.62") + " m/s";
       }
+    }
+
+    function syncEnteredPeople(people) {
+      enteredPeople = people.map(person => ({
+        id: person.id,
+        time: person.time,
+        img: person.image_url
+      }));
+      renderThumbnails();
     }
 
     // Tạo ảnh đại diện người vào ROI
@@ -952,39 +1018,72 @@
       `).join("");
     }
 
-    function addHistoryRow(name, total, inn, out) {
+    async function loadHistory() {
+      try {
+        const response = await fetch("/api/history");
+        if (!response.ok) throw new Error("Không tải được lịch sử phân tích.");
+        const data = await response.json();
+        historyEntries = data.history || [];
+        renderHistory();
+      } catch (error) {
+        setStatus(error.message || "Không tải được lịch sử phân tích.");
+      }
+    }
+
+    function renderHistory() {
       const body = $("historyBody");
-      if (body.querySelector(".empty")) body.innerHTML = "";
-      const idx = body.children.length + 1;
-      const timeStr = new Date().toLocaleString("vi-VN");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${idx}</td>
-        <td style="font-weight:600">${name}</td>
-        <td style="color:var(--muted)">${timeStr}</td>
-        <td><b>${total}</b></td>
-        <td style="color:#07984d;font-weight:700">${inn}</td>
-        <td style="color:#e53b3b;font-weight:700">${out}</td>
-        <td><span class="badge">Hoàn thành</span></td>
-        <td><button class="btn-detail" onclick="openDetailModal(${inn}, ${out}, ${total})"><svg style="width:15px;height:15px"><use href="#search"/></svg>Xem chi tiết</button></td>
-      `;
-      body.prepend(tr);
+      body.replaceChildren();
+      if (!historyEntries.length) {
+        body.innerHTML = '<tr><td colspan="8" class="empty">Chưa có lịch sử phân tích</td></tr>';
+        return;
+      }
+      historyEntries.forEach((entry, index) => {
+        const row = document.createElement("tr");
+        [
+          index + 1,
+          entry.filename,
+          entry.created_at,
+          entry.total_people || 0,
+          entry.count_in || 0,
+          entry.count_out || 0
+        ].forEach((value, cellIndex) => {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          if (cellIndex === 1) cell.style.fontWeight = "600";
+          if (cellIndex === 2) cell.style.color = "var(--muted)";
+          if (cellIndex === 4) cell.style.cssText = "color:#07984d;font-weight:700";
+          if (cellIndex === 5) cell.style.cssText = "color:#e53b3b;font-weight:700";
+          row.appendChild(cell);
+        });
+        const statusCell = document.createElement("td");
+        statusCell.innerHTML = '<span class="badge">Hoàn thành</span>';
+        row.appendChild(statusCell);
+        const actionCell = document.createElement("td");
+        const detailButton = document.createElement("button");
+        detailButton.className = "btn-detail";
+        detailButton.innerHTML = '<svg style="width:15px;height:15px"><use href="#search"/></svg>Xem chi tiết';
+        detailButton.onclick = () => openDetailModal(entry);
+        actionCell.appendChild(detailButton);
+        row.appendChild(actionCell);
+        body.appendChild(row);
+      });
     }
 
     // Mở / Đóng Modal Chi tiết phân tích
-    window.openDetailModal = function(inn, out, total) {
-      $("modalIn").textContent = inn ?? $("inCount").textContent;
-      $("modalOut").textContent = out ?? $("outCount").textContent;
-      $("modalTotal").textContent = total ?? $("peopleCount").textContent;
+    window.openDetailModal = function(entry = null) {
+      const people = entry?.entered_people || enteredPeople;
+      $("modalIn").textContent = entry?.count_in ?? $("inCount").textContent;
+      $("modalOut").textContent = entry?.count_out ?? $("outCount").textContent;
+      $("modalTotal").textContent = entry?.total_people ?? $("peopleCount").textContent;
       $("modalBadgeTotal").textContent = `Tổng: ${$("modalTotal").textContent} người`;
 
       const list = $("modalPeopleList");
-      if (!enteredPeople.length) {
+      if (!people.length) {
         list.innerHTML = '<div class="empty">Chưa có dữ liệu người vào ROI</div>';
       } else {
-        list.innerHTML = enteredPeople.slice(0, 10).map(p => `
+        list.innerHTML = people.slice(0, 10).map(p => `
           <div class="thumb">
-            <img src="${p.img}" alt="ID ${p.id}" />
+            <img src="${p.img || p.image_url}" alt="ID ${p.id}" />
             <b>ID ${p.id}</b>
             <small>${p.time}</small>
           </div>
@@ -994,13 +1093,17 @@
     };
 
     $("openModalLink").onclick = () => openDetailModal();
-    $("viewAllHistory").onclick = () => openDetailModal();
+    $("viewAllHistory").onclick = () => document.querySelector(".history").scrollIntoView({ behavior: "smooth" });
     $("closeModalX").onclick = () => $("detailModal").classList.remove("show");
     $("closeModalBtn").onclick = () => $("detailModal").classList.remove("show");
 
     function stopAllStreams() {
       if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
       if (simAnim) { cancelAnimationFrame(simAnim); simAnim = null; }
+      if (streamActive) fetch("/api/stop", { method: "POST" }).catch(() => {});
+      streamActive = false;
+      $("playback").disabled = true;
+      setPlaybackButton(false);
     }
 
     // Nút Thiết lập lại (Reset)
@@ -1013,7 +1116,7 @@
       drawingMode(false);
       paint();
       roiStatus();
-      ["inCount", "outCount", "peopleCount", "overlayIn", "overlayOut"].forEach(
+      ["inCount", "outCount", "peopleCount"].forEach(
         (id) => ($(id).textContent = "0")
       );
       $("activeId").textContent = "Chưa có";
@@ -1021,6 +1124,7 @@
       $("speed").textContent = "-- m/s";
       renderThumbnails();
       loadDefault();
+      loadHistory();
       setStatus("Đã thiết lập lại");
     };
 
@@ -1110,8 +1214,11 @@
 
         simAnim = requestAnimationFrame(step);
       }
-      step();
-      addHistoryRow(currentFilename, totalIds, 5, 3);
+      startDemoAnimation();
+
+      function startDemoAnimation() {
+        if (!simAnim) simAnim = requestAnimationFrame(step);
+      }
     }
 
     window.addEventListener("resize", fit);
