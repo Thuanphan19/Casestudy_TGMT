@@ -169,18 +169,15 @@ def generate_frames(filename):
                 completed = True
                 break
 
-            detections = detector_instance.detect(frame)
-            stats = counter_instance.update(detections)
-            position_seconds = capture.get(cv2.CAP_PROP_POS_FRAMES) / fps if fps > 0 else 0
-            if duration_seconds:
-                position_seconds = min(position_seconds, duration_seconds)
-            captured_people = counter_instance.capture_entries(
+            frame, _, stats, captured_people = detector_instance.process_frame(
                 frame,
-                detections,
-                stats["entered_ids"],
+                counter_instance,
                 CAPTURES_DIR,
                 current_analysis["id"],
             )
+            position_seconds = capture.get(cv2.CAP_PROP_POS_FRAMES) / fps if fps > 0 else 0
+            if duration_seconds:
+                position_seconds = min(position_seconds, duration_seconds)
             current_analysis["captured_people"].extend(captured_people)
 
             with lock:
@@ -195,7 +192,6 @@ def generate_frames(filename):
                     "paused": is_paused,
                 })
 
-            frame = counter_instance.render_frame(frame, detections)
             ret, buffer = cv2.imencode(".jpg", frame)
             if ret:
                 if fps > 0:
@@ -242,7 +238,7 @@ def generate_frames(filename):
 
 @app.post("/api/process")
 def process_video():
-    global current_polygon, is_running, is_paused, analysis
+    global current_polygon, is_running, is_paused, analysis, detector_instance
     data = request.get_json(silent=True) or {}
     filename = secure_filename(data.get("filename", ""))
     roi_points = data.get("roi") or data.get("points")
@@ -262,6 +258,10 @@ def process_video():
     temp_cap.release()
     if width <= 0 or height <= 0:
         return jsonify({"error": "Kích thước video không hợp lệ."}), 400
+
+    if detector_instance is None:
+        detector_instance = PeopleDetector(str(MODEL_PATH))
+        detector_instance.warmup()
 
     current_polygon = np.array([[int(x * width), int(y * height)] for x, y in roi_points], dtype=np.int32)
     with lock:
@@ -345,25 +345,20 @@ def stop_video():
 
 @app.get("/api/history")
 def history():
-    start_date = request.args.get("start_date", "")
-    end_date = request.args.get("end_date", "")
+    selected_date = request.args.get("date", "")
     page = request.args.get("page", 1, type=int)
     try:
-        if start_date:
-            datetime.strptime(start_date, "%Y-%m-%d")
-        if end_date:
-            datetime.strptime(end_date, "%Y-%m-%d")
-        if start_date and end_date and start_date > end_date:
-            return jsonify({"error": "Ngày bắt đầu phải trước hoặc bằng ngày kết thúc."}), 400
+        if selected_date:
+            datetime.strptime(selected_date, "%Y-%m-%d")
     except ValueError:
         return jsonify({"error": "Ngày lọc không hợp lệ."}), 400
     if page < 1:
         return jsonify({"error": "Trang phải lớn hơn hoặc bằng 1."}), 400
     page_size = 8
-    total = count_history(start_date or None, end_date or None)
+    date_filter = selected_date or None
+    total = count_history(date_filter)
     entries = get_history(
-        start_date or None,
-        end_date or None,
+        date_filter,
         limit=page_size,
         offset=(page - 1) * page_size,
     )
