@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Detection(TypedDict):
-    id: int
+    id: int | None
     bbox: list[int]
     confidence: float
 
@@ -31,7 +31,7 @@ class CapturedPerson(TypedDict):
 class PeopleDetector:
     PERSON_CLASS = 0
     CONFIDENCE_THRESHOLD = 0.2
-    INFERENCE_SIZE = 320
+    INFERENCE_SIZE = 960
 
     def __init__(self, model_path: str | Path):
         self.model = YOLO(str(model_path))
@@ -73,12 +73,9 @@ class PeopleDetector:
 
     @staticmethod
     def _parse_box(box: Boxes) -> Detection | None:
-        if box.id is None:
-            return None
-
         x1, y1, x2, y2 = box.xyxy[0].tolist()
         return {
-            "id": int(box.id[0]),
+            "id": int(box.id[0]) if box.id is not None else None,
             "bbox": [int(x1), int(y1), int(x2), int(y2)],
             "confidence": float(box.conf[0]),
         }
